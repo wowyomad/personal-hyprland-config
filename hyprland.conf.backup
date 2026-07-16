@@ -38,8 +38,8 @@ $games = ^(steam_app_.*|Deadlock)$
 
 # Modern Hyprland window rules
 windowrule = workspace 4 silent,   match:class $games
-windowrule = fullscreen 0,         match:class $games
-windowrule = immediate 1,          match:class $games
+windowrule = fullscreen true,         match:class $games
+windowrule = immediate true,      match:class $games
 
 # Should make single window fullscreen behave better when new windows spawn.
 # workspace = w[tv1], gapsout:8, gapsin:0
@@ -171,7 +171,7 @@ general {
 }
 
 render {
-    direct_scanout = 1
+    direct_scanout = 0
 }
 
 
@@ -257,6 +257,7 @@ master {
 
 # https://wiki.hypr.land/Configuring/Variables/#misc
 misc {
+    on_focus_under_fullscreen = 1
     middle_click_paste = false
     force_default_wallpaper = -1 # Set to 0 or 1 to disable the anime mascot wallpapers
     disable_hyprland_logo = false # If true disables the random hyprland logo / anime girl background. :(
@@ -264,12 +265,12 @@ misc {
 }
 
 debug {
-    vfr = false
+    vfr = true
 }
 
 cursor {
     no_hardware_cursors = false
-    no_break_fs_vrr = false
+    no_break_fs_vrr = true
 }
 
 
