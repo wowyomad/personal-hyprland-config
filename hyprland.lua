@@ -156,7 +156,7 @@ hl.config({
     },
     input = {
         kb_layout = "us, ru",
-        kb_options = "grp:mainAlt_shift_toggle",
+        kb_options = "grp:alt_shift_toggle",
         follow_mouse = 1,
         sensitivity = 0.0,
         touchpad = {
@@ -290,6 +290,7 @@ hl.bind(mainAlt .. " + L", hl.dsp.window.move({ direction = "r" }))
 hl.bind(mainAlt .. " + K", hl.dsp.window.move({ direction = "u" }))
 hl.bind(mainAlt .. " + J", hl.dsp.window.move({ direction = "d" }))
 hl.bind(main .. " + R", hl.dsp.layout("rollnext"))
+
 
 -- ---------------------------------------------------------------------------------------
 -- WORKSPACE BINDINGS
