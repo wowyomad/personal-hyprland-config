@@ -2,7 +2,7 @@
 -- HYPRLAND LUA CONFIGURATION
 -- Replaces ~/.config/hypr/hyprland.conf -> ~/.config/hypr/hyprland.lua
 -- #######################################################################################
-
+local zoom = require("util.zoom")
 -- ---------------------------------------------------------------------------------------
 -- VARIABLES
 -- ---------------------------------------------------------------------------------------
@@ -11,10 +11,10 @@ local fileManager = "dolphin"
 local menu = "wofi --show drun"
 
 -- Define Modifiers for easy referencing
-local mainMod = "SUPER"
-local subMod = "SUPER + SHIFT"
-local altMod = "SUPER + ALT"
-local ctrlSuper = "CTRL + SUPER"
+local main = "SUPER"
+local mainShift = "SUPER + SHIFT"
+local mainAlt = "SUPER + ALT"
+local mainCtrl = "SUPER + CTRL"
 
 -- ---------------------------------------------------------------------------------------
 -- EXECUTIVES & AUTOSTART
@@ -56,12 +56,29 @@ hl.env("HYPRCURSOR_SIZE", "24")
 -- ---------------------------------------------------------------------------------------
 -- MONITORS
 -- ---------------------------------------------------------------------------------------
+local mon		= "DP-1"
+local res		= "3440x1440"
+local defaultHz		= 155
+local overclockHz	= 144
+
 hl.monitor({
     output = "DP-1",
     mode = "3440x1440@155",
-    position = "auto",
-    scale = "auto"
+    position = "0x0",
+    scale = "1"
 })
+
+hl.bind("CTRL + F12", function()
+    local currentHz = hl.get_monitor(mon).refresh_rate
+    local targetHz = (math.abs(currentHz - defaultHz) < 1) and overclockHz or defaultHz
+
+    hl.monitor({ output = mon, mode = res .. "@" .. targetHz })
+
+    hl.notification.create({
+        text	= "Refresh rate: " .. targetHz .. "Hz",
+	duration = 1200,
+    })
+end, { locked = true })
 
 -- ---------------------------------------------------------------------------------------
 -- WORKSPACES
@@ -118,6 +135,10 @@ hl.config({
     master = {
         new_status = "master"
     },
+    binds = {
+        scroll_event_delay = 0,
+	pass_mouse_when_bound = false,
+    },
     misc = {
         on_focus_under_fullscreen = 1,
         middle_click_paste = false,
@@ -129,12 +150,13 @@ hl.config({
         vfr = true
     },
     cursor = {
+        zoom_disable_aa = true,
         no_hardware_cursors = false,
         no_break_fs_vrr = true
     },
     input = {
         kb_layout = "us, ru",
-        kb_options = "grp:alt_shift_toggle",
+        kb_options = "grp:mainAlt_shift_toggle",
         follow_mouse = 1,
         sensitivity = 0.0,
         touchpad = {
@@ -205,7 +227,7 @@ hl.window_rule({ match = { class = "^(steam)$" }, no_vrr = true })
 
 -- Suppressions and Fixes
 hl.window_rule({ name = "suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })
-hl.window_rule({ name = "suppress-fullscreen", match = { class = ".*" }, suppress_event = "fullscreen" })
+-- hl.window_rule({ name = "suppress-fullscreen", match = { class = ".*" }, suppress_event = "fullscreen" })
 hl.window_rule({ 
     name = "fix-xwayland-drags",
     match = { class = "^$", title = "^$", xwayland = true, float = true, fullscreen = false, pin = true }, 
@@ -216,32 +238,32 @@ hl.window_rule({
 -- KEYBINDINGS (Migrated to Official Dispatcher namespaces)
 -- ---------------------------------------------------------------------------------------
 -- Core bindings
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + C", hl.dsp.window.close())
+hl.bind(main .. " + Q", hl.dsp.exec_cmd(terminal))
+hl.bind(main .. " + C", hl.dsp.window.close())
 hl.bind("ALT + F4", hl.dsp.exec_cmd("hyprctl dispatch forcekillactive")) -- Fallback to ensure force
-hl.bind(subMod .. " + C", hl.dsp.exec_cmd("hyprctl dispatch forcekillactive")) 
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("wlogout"))
-hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + F", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
-hl.bind(mainMod .. " + T", hl.dsp.layout("togglesplit"))
-hl.bind(mainMod .. " + D", hl.dsp.window.fullscreen(1))
-hl.bind(subMod .. " + D", hl.dsp.window.fullscreen(0))
+hl.bind(mainShift .. " + C", hl.dsp.exec_cmd("hyprctl dispatch forcekillactive")) 
+hl.bind(main .. " + M", hl.dsp.exec_cmd("wlogout"))
+hl.bind(main .. " + E", hl.dsp.exec_cmd(fileManager))
+hl.bind(main .. " + F", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(main .. " + R", hl.dsp.exec_cmd(menu))
+hl.bind(main .. " + P", hl.dsp.window.pseudo())
+hl.bind(main .. " + T", hl.dsp.layout("togglesplit"))
+hl.bind(main .. " + D", hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle"} ))
+hl.bind(mainShift .. " + D", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle"}))
 
 -- Custom app bindings
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"))
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("brave"))
-hl.bind(mainMod .. " + J", hl.dsp.exec_cmd("jiffy"))
-hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("copyq toggle"))
-hl.bind(mainMod .. " + Grave", hl.dsp.exec_cmd("vicinae toggle"))
+hl.bind(main .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"))
+hl.bind(main .. " + B", hl.dsp.exec_cmd("brave"))
+hl.bind(main .. " + J", hl.dsp.exec_cmd("jiffy"))
+hl.bind(main .. " + V", hl.dsp.exec_cmd("copyq toggle"))
+hl.bind(main .. " + Grave", hl.dsp.exec_cmd("vicinae toggle"))
 
 -- Screenshots
 hl.bind("Print", hl.dsp.exec_cmd("sh -c 'pgrep -x slurp || (TARGET=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\"; grim -g \"$(slurp)\" \"$TARGET\" && wl-copy < \"$TARGET\")'"))
 
 -- Zoom bindings
-hl.bind(ctrlSuper .. " + mouse_down", hl.dsp.exec_cmd("hyprctl keyword cursor:zoom_factor 2"), { repeating = true })
-hl.bind(ctrlSuper .. " + mouse_up", hl.dsp.exec_cmd("hyprctl keyword cursor:zoom_factor 0.5"), { repeating = true })
+hl.bind(mainShift .. " + mouse_down", zoom.zoom_in)
+hl.bind(mainShift .. " + mouse_up", zoom.zoom_out)
 
 -- Audio Custom Binds
 hl.bind("ALT + M", hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle"))
@@ -249,37 +271,36 @@ hl.bind("ALT + Up", hl.dsp.exec_cmd("wayle audio output-volume $(wayle audio out
 hl.bind("ALT + Down", hl.dsp.exec_cmd("wayle audio output-volume $(wayle audio output-volume | awk '{print $2}' | tr -d '%' | awk '{print $1 - 5}')"), { repeating = true })
 
 -- Move Focus
-hl.bind(mainMod .. " + h", hl.dsp.focus({ direction = "l" }))
-hl.bind(mainMod .. " + l", hl.dsp.focus({ direction = "r" }))
-hl.bind(mainMod .. " + k", hl.dsp.focus({ direction = "u" }))
-hl.bind(mainMod .. " + j", hl.dsp.focus({ direction = "d" }))
-hl.bind("ALT + Tab", hl.dsp.focus({ direction = "right" }))
-hl.bind("ALT + SHIFT + TAB", hl.dsp.focus({ direction = "left" }))
+hl.bind(main .. " + h", hl.dsp.focus({ direction = "l" }))
+hl.bind(main .. " + l", hl.dsp.focus({ direction = "r" }))
+hl.bind(main .. " + k", hl.dsp.focus({ direction = "u" }))
+hl.bind(main .. " + j", hl.dsp.focus({ direction = "d" }))
+hl.bind("ALT + Tab", hl.dsp.window.cycle_next())
 
 -- Swap Window
-hl.bind(subMod .. " + H", hl.dsp.window.swap({ direction = "l" }))
-hl.bind(subMod .. " + L", hl.dsp.window.swap({ direction = "r" }))
-hl.bind(subMod .. " + K", hl.dsp.window.swap({ direction = "u" }))
-hl.bind(subMod .. " + J", hl.dsp.window.swap({ direction = "d" }))
-hl.bind(mainMod .. " + W", hl.dsp.layout("swapnext"))
+hl.bind(mainShift .. " + H", hl.dsp.window.swap({ direction = "l" }))
+hl.bind(mainShift .. " + L", hl.dsp.window.swap({ direction = "r" }))
+hl.bind(mainShift .. " + K", hl.dsp.window.swap({ direction = "u" }))
+hl.bind(mainShift .. " + J", hl.dsp.window.swap({ direction = "d" }))
+hl.bind(main .. " + W", hl.dsp.layout("swapnext"))
 
 -- Move Window
-hl.bind(altMod .. " + H", hl.dsp.window.move({ direction = "l" }))
-hl.bind(altMod .. " + L", hl.dsp.window.move({ direction = "r" }))
-hl.bind(altMod .. " + K", hl.dsp.window.move({ direction = "u" }))
-hl.bind(altMod .. " + J", hl.dsp.window.move({ direction = "d" }))
-hl.bind(mainMod .. " + R", hl.dsp.layout("rollnext"))
+hl.bind(mainAlt .. " + H", hl.dsp.window.move({ direction = "l" }))
+hl.bind(mainAlt .. " + L", hl.dsp.window.move({ direction = "r" }))
+hl.bind(mainAlt .. " + K", hl.dsp.window.move({ direction = "u" }))
+hl.bind(mainAlt .. " + J", hl.dsp.window.move({ direction = "d" }))
+hl.bind(main .. " + R", hl.dsp.layout("rollnext"))
 
 -- ---------------------------------------------------------------------------------------
 -- WORKSPACE BINDINGS
 -- ---------------------------------------------------------------------------------------
 -- Standard numbers
 for i = 1, 9 do
-    hl.bind(mainMod .. " + " .. i, hl.dsp.focus({ workspace = i }))
-    hl.bind(subMod .. " + " .. i, hl.dsp.window.move({ workspace = i, silent = true }))
+    hl.bind(main .. " + " .. i, hl.dsp.focus({ workspace = i }))
+    hl.bind(mainShift .. " + " .. i, hl.dsp.window.move({ workspace = i, silent = true }))
 end
-hl.bind(mainMod .. " + 0", hl.dsp.focus({ workspace = 10 }))
-hl.bind(subMod .. " + 0", hl.dsp.window.move({ workspace = 10, silent = true }))
+hl.bind(main .. " + 0", hl.dsp.focus({ workspace = 10 }))
+hl.bind(mainShift .. " + 0", hl.dsp.window.move({ workspace = 10, silent = true }))
 
 -- Numpad keys
 local kp_binds = {
@@ -287,26 +308,26 @@ local kp_binds = {
     KP_Right = 6, KP_Home = 7, KP_Up = 8, KP_Prior = 9, KP_Insert = 10
 }
 for key, ws in pairs(kp_binds) do
-    hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = ws }))
-    hl.bind(subMod .. " + " .. key, hl.dsp.window.move({ workspace = ws, silent = true }))
+    hl.bind(main .. " + " .. key, hl.dsp.focus({ workspace = ws }))
+    hl.bind(mainShift .. " + " .. key, hl.dsp.window.move({ workspace = ws, silent = true }))
 end
 
 -- Special Workspace
-hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("magic"))
-hl.bind(subMod .. " + S", hl.dsp.window.move({ workspace = "special:magic" }))
+hl.bind(main .. " + S", hl.dsp.workspace.toggle_special("magic"))
+hl.bind(mainShift .. " + S", hl.dsp.window.move({ workspace = "special:magic" }))
 
 -- Scroll Workspaces
-hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
-hl.bind(mainMod .. " + TAB", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(subMod .. " + TAB", hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(main .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(main .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(main .. " + TAB", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainShift .. " + TAB", hl.dsp.focus({ workspace = "e-1" }))
 
 -- ---------------------------------------------------------------------------------------
 -- MOUSE BINDINGS
 -- ---------------------------------------------------------------------------------------
-hl.bind(mainMod .. " + mouse:274", hl.dsp.window.close())
-hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true }) 
-hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true }) 
+hl.bind(main .. " + mouse:274", hl.dsp.window.close())
+hl.bind(main .. " + mouse:272", hl.dsp.window.drag(), { mouse = true }) 
+hl.bind(main .. " + mouse:273", hl.dsp.window.resize(), { mouse = true }) 
 
 -- ---------------------------------------------------------------------------------------
 -- MULTIMEDIA KEYS
@@ -326,7 +347,7 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 -- ---------------------------------------------------------------------------------------
 -- SUBMAPS
 -- ---------------------------------------------------------------------------------------
-hl.bind(subMod .. " + R", hl.dsp.submap("resize"))
+hl.bind(mainShift .. " + R", hl.dsp.submap("resize"))
 hl.define_submap("resize", function()
     local moveOut = 50
     local moveIn = -50
